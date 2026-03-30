@@ -21,3 +21,9 @@ Este proyecto tiene como objetivo crear una base para una tienda online, con un 
 
 ## Autor
 Facundo Iglesias
+## Segunda rama
+Se agregó este cambio para practicar el flujo con ramas y PR.
+## Bugfix pequeño
+Se corrigió contenido menor para practicar el flujo de corrección.
+## Segunda rama
+Cambio realizado para practicar branch, push, PR y merge.
