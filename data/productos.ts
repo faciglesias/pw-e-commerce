@@ -1,26 +1,26 @@
 export const productos = [
   {
     id: 1,
-    nombre: "Remera Oversize",
-    precio: 29999,
-    descripcion: "Remera de algodón con calce cómodo para uso diario.",
-    imagen:
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80",
+    nombre: "Mochila 360",
+    precio: 100000,
+    descripcion:
+      "Mochila amplia, sobria y funcional para viajes cortos y uso diario.",
+    imagen: "/mochilas/mochila-360.jpg",
   },
   {
     id: 2,
-    nombre: "Zapatillas Urban",
-    precio: 89999,
-    descripcion: "Zapatillas modernas y versátiles para un look casual.",
-    imagen:
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80",
+    nombre: "Mochila Slim",
+    precio: 70000,
+    descripcion:
+      "Diseño liviano y limpio, ideal para moverte con lo esencial.",
+    imagen: "/mochilas/mochila-slim.jpg",
   },
   {
     id: 3,
-    nombre: "Mochila Classic",
-    precio: 49999,
-    descripcion: "Mochila resistente con amplio espacio para todos los días.",
-    imagen:
-      "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=900&q=80",
+    nombre: "Neceser / Bolso de mano",
+    precio: 35000,
+    descripcion:
+      "Accesorio compacto para organizar tus objetos personales con estilo.",
+    imagen: "/mochilas/neceser.jpg",
   },
 ];
