@@ -16,11 +16,10 @@ export default async function ProductoDetalle({ params }: Props) {
 
   if (!producto) {
     return (
-      <div className="min-h-screen bg-white text-neutral-900">
+      <div className="site-wrapper">
         <Header />
-        <main className="mx-auto max-w-6xl px-6 py-16">
-          <h1 className="text-3xl font-medium">Producto no encontrado</h1>
-          <p className="mt-4 text-neutral-600">ID recibido: {resolvedParams.id}</p>
+        <main className="container section-spacing">
+          <h1 className="page-title">Producto no encontrado</h1>
         </main>
         <Footer />
       </div>
@@ -28,34 +27,26 @@ export default async function ProductoDetalle({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900">
+    <div className="site-wrapper">
       <Header />
 
-      <main className="mx-auto grid max-w-6xl gap-10 px-6 py-12 md:grid-cols-2">
-        <div className="overflow-hidden rounded-sm bg-neutral-100">
+      <main className="container detail-grid">
+        <div className="detail-image-box">
           <img
             src={producto.imagen}
             alt={producto.nombre}
-            className="h-[620px] w-full object-contain"
+            className="detail-image"
           />
         </div>
 
-        <div className="pt-4">
-          <p className="text-sm uppercase tracking-wide text-neutral-400">
-            Reciclado
-          </p>
-          <h1 className="mt-3 text-3xl font-medium tracking-tight">
-            {producto.nombre}
-          </h1>
-          <p className="mt-3 text-lg text-neutral-700">
-            ${producto.precio.toLocaleString("es-AR")}
-          </p>
+        <div className="detail-content">
+          <p className="detail-tag">Colección Nómada</p>
+          <h1 className="detail-title">{producto.nombre}</h1>
+          <p className="detail-price">${producto.precio.toLocaleString("es-AR")}</p>
 
-          <p className="mt-6 max-w-md text-sm leading-7 text-neutral-600">
-            {producto.descripcion}
-          </p>
+          <p className="detail-description">{producto.descripcion}</p>
 
-          <button className="mt-8 rounded-sm bg-neutral-900 px-6 py-3 text-sm text-white hover:bg-black">
+          <button className="button-dark" style={{ marginTop: "32px" }}>
             Agregar al carrito
           </button>
         </div>

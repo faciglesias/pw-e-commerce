@@ -14,18 +14,18 @@ export default function ProductosPage() {
   );
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900">
+    <div className="site-wrapper">
       <Header />
 
-      <main className="mx-auto max-w-6xl px-6 pt-10 pb-12">
-        <p className="text-sm text-neutral-400">Inicio / Catálogo</p>
-        <h1 className="mt-4 text-4xl font-medium tracking-tight">Catálogo</h1>
-        <p className="mt-4 max-w-3xl text-sm leading-6 text-neutral-600">
+      <main className="container section-spacing">
+        <p className="breadcrumb">Inicio / Catálogo</p>
+        <h1 className="page-title">Catálogo</h1>
+        <p className="page-subtitle">
           Colección de mochilas y accesorios con estética minimalista.
         </p>
 
-        <div className="mt-8 mb-8">
-          <label htmlFor="buscador" className="mb-2 block text-sm text-neutral-600">
+        <div className="search-block">
+          <label htmlFor="buscador" className="search-label">
             Buscar producto
           </label>
           <input
@@ -34,32 +34,23 @@ export default function ProductosPage() {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Escribí el nombre del producto"
-            className="w-full max-w-md border border-neutral-300 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+            className="search-input"
           />
         </div>
 
-        <div className="mb-8 flex items-center justify-between">
-          <p className="text-sm text-neutral-500">
-            {productosFiltrados.length} producto(s)
-          </p>
-          <p className="text-sm text-neutral-500">Ordenado por relevancia</p>
+        <div className="products-topbar">
+          <p className="section-note">{productosFiltrados.length} producto(s)</p>
+          <p className="section-note">Ordenado por relevancia</p>
         </div>
 
         {productosFiltrados.length > 0 ? (
-          <div className="grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
+          <div className="products-grid">
             {productosFiltrados.map((producto) => (
-              <ProductCard
-                key={producto.id}
-                id={producto.id}
-                nombre={producto.nombre}
-                precio={producto.precio}
-                descripcion={producto.descripcion}
-                imagen={producto.imagen}
-              />
+              <ProductCard key={producto.id} {...producto} />
             ))}
           </div>
         ) : (
-          <p className="text-sm text-neutral-500">
+          <p className="section-note">
             No se encontraron productos con esa búsqueda.
           </p>
         )}

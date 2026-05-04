@@ -8,84 +8,64 @@ export default function Home() {
   const destacados = [productos[1], productos[2]];
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900">
+    <div className="site-wrapper">
       <Header />
 
       <main>
-        <section className="mx-auto grid max-w-6xl gap-10 px-6 py-10 md:grid-cols-2 md:items-center">
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-neutral-400">
-              Colección 2026
-            </p>
+        <section className="container section-spacing hero-grid">
+          <div className="hero-text">
+            <p className="small-label">Colección 2026</p>
 
-            <h1 className="mt-4 text-5xl font-medium tracking-tight">
-              Mochilas minimalistas para viajar liviano
-            </h1>
+            <h1 className="page-title">Mochilas minimalistas para viajar liviano</h1>
 
-            <p className="mt-6 max-w-lg text-sm leading-7 text-neutral-600">
+            <p className="hero-description">
               Una selección de mochilas y accesorios con diseño limpio,
               funcional y urbano, inspirada en una estética simple, sobria y
               pensada para el movimiento diario.
             </p>
 
-            <div className="mt-8 flex gap-4">
-              <Link
-                href="/productos"
-                className="bg-neutral-900 px-6 py-3 text-sm text-white hover:bg-black"
-              >
+            <div className="hero-buttons">
+              <Link href="/productos" className="button-dark">
                 Ver colección
               </Link>
 
-              <Link
-                href="/carrito"
-                className="border border-neutral-300 px-6 py-3 text-sm text-neutral-900"
-              >
+              <Link href="/carrito" className="button-light">
                 Ir al carrito
               </Link>
             </div>
           </div>
 
-          <Link
-            href="/productos/1"
-            className="block overflow-hidden rounded-sm bg-neutral-100"
-          >
+          <Link href="/productos/1" className="hero-image-link">
             <img
               src="/mochilas/mochila-360.jpg"
               alt="Mochila 360"
-              className="h-[520px] w-full object-contain transition duration-300 hover:scale-[1.02]"
+              className="hero-image"
             />
           </Link>
         </section>
 
-        <section className="mx-auto max-w-6xl px-6 py-12">
-          <div className="mb-8 flex items-end justify-between">
+        <section className="container section-spacing">
+          <div className="section-header">
             <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-neutral-400">
-                Destacados
-              </p>
-              <h2 className="mt-2 text-3xl font-medium tracking-tight">
-                Nuestros elegidos
-              </h2>
+              <p className="small-label">Destacados</p>
+              <h2 className="section-title">Nuestros elegidos</h2>
             </div>
 
-            <Link
-              href="/productos"
-              className="text-sm text-neutral-700 underline-offset-4 hover:underline"
-            >
+            <Link href="/productos" className="link-inline">
               Ver todos
             </Link>
           </div>
 
-          <div className="grid gap-x-8 gap-y-12 md:grid-cols-2">
+          <div className="products-grid-two">
             {destacados.map((producto) => (
               <ProductCard key={producto.id} {...producto} />
             ))}
           </div>
         </section>
 
-        <section className="border-t border-neutral-200">
-          <div className="mx-auto max-w-6xl px-6 py-14">
-            <p className="max-w-3xl text-2xl font-medium leading-10 text-neutral-900">
+        <section className="quote-section">
+          <div className="container">
+            <p className="quote-text">
               Diseñadas para acompañarte todos los días, con una estética
               simple, materiales resistentes y una forma de llevar solo lo
               necesario.
