@@ -1,55 +1,61 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { productos } from "@/data/productos";
+import { getProductoPorId } from "@/lib/productos";
+import AgregarAlCarrito from "@/components/AgregarAlCarrito";
 
-type Props = {
+type PageProps = {
   params: Promise<{
     id: string;
   }>;
 };
 
-export default async function ProductoDetalle({ params }: Props) {
-  const resolvedParams = await params;
-  const idNumero = Number(resolvedParams.id);
-
-  const producto = productos.find((p) => p.id === idNumero);
+export default async function ProductoDetallePage({ params }: PageProps) {
+  const { id } = await params;
+  const producto = await getProductoPorId(id);
 
   if (!producto) {
-    return (
-      <div className="site-wrapper">
-        <Header />
-        <main className="container section-spacing">
-          <h1 className="page-title">Producto no encontrado</h1>
-        </main>
-        <Footer />
-      </div>
-    );
+    notFound();
   }
 
   return (
     <div className="site-wrapper">
       <Header />
 
-      <main className="container detail-grid">
-        <div className="detail-image-box">
-          <img
-            src={producto.imagen}
-            alt={producto.nombre}
-            className="detail-image"
-          />
-        </div>
+      <main className="container">
+        <section className="detail-grid">
+          <div className="detail-image-box">
+            <img
+              src={producto.imagen_url}
+              alt={producto.nombre}
+              className="detail-image"
+            />
+          </div>
 
-        <div className="detail-content">
-          <p className="detail-tag">Colección Nómada</p>
-          <h1 className="detail-title">{producto.nombre}</h1>
-          <p className="detail-price">${producto.precio.toLocaleString("es-AR")}</p>
+          <div className="detail-content">
+            <p className="breadcrumb">
+              <Link href="/">Inicio</Link> /{" "}
+              <Link href="/productos">Productos</Link> / {producto.nombre}
+            </p>
 
-          <p className="detail-description">{producto.descripcion}</p>
+            <p className="detail-tag">{producto.categoria}</p>
 
-          <button className="button-dark" style={{ marginTop: "32px" }}>
-            Agregar al carrito
-          </button>
-        </div>
+            <h1 className="detail-title">{producto.nombre}</h1>
+
+            <p className="detail-price">${producto.precio}</p>
+
+            <p className="detail-description">{producto.descripcion}</p>
+
+            <div className="cart-buttons">
+              <AgregarAlCarrito producto={producto} />
+
+              <Link href="/productos" className="button-light">
+                Volver a productos
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
 
       <Footer />

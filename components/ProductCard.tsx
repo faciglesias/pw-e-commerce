@@ -1,32 +1,36 @@
 import Link from "next/link";
 
-type ProductCardProps = {
+type Producto = {
   id: number;
   nombre: string;
-  precio: number;
-  descripcion: string;
-  imagen: string;
+  descripcion: string | null;
+  precio: number | string;
+  imagen_url: string | null;
+  categoria?: string | null;
 };
 
-export default function ProductCard({
-  id,
-  nombre,
-  precio,
-  descripcion,
-  imagen,
-}: ProductCardProps) {
+export default function ProductCard({ producto }: { producto: Producto }) {
+  const precioFormateado = Number(producto.precio).toLocaleString("es-AR");
+
   return (
-    <Link href={`/productos/${id}`} className="product-card-link">
+    <Link href={`/productos/${producto.id}`} className="product-card-link">
       <article className="product-card">
         <div className="product-image-box">
-          <img src={imagen} alt={nombre} className="product-image" />
+          <img
+            src={producto.imagen_url || "/mochilas/mochila-360.jpg"}
+            alt={producto.nombre}
+            className="product-image"
+          />
         </div>
 
         <div className="product-content">
-          <h3 className="product-name">{nombre}</h3>
-          <p className="product-price">${precio.toLocaleString("es-AR")}</p>
-          <p className="product-description">{descripcion}</p>
-          <p className="product-link-text">Ver producto</p>
+          <h2 className="product-name">{producto.nombre}</h2>
+
+          <p className="product-price">${precioFormateado}</p>
+
+          <p className="product-description">{producto.descripcion}</p>
+
+          <span className="product-link-text">Ver producto</span>
         </div>
       </article>
     </Link>
