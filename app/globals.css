@@ -629,4 +629,73 @@ img {
 .payment-pending {
   border-top-color: #f39c12;
 }
+.admin-table-box {
+  width: 100%;
+  overflow-x: auto;
+  background: #ffffff;
+  border: 1px solid #d4d4d4;
+  padding: 16px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.admin-table th,
+.admin-table td {
+  border-bottom: 1px solid #e5e5e5;
+  padding: 14px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-table th {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #555;
+}
+
+.admin-user-cell {
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.admin-status {
+  display: inline-block;
+  padding: 6px 10px;
+  border: 1px solid #d4d4d4;
+  font-size: 0.85rem;
+  text-transform: capitalize;
+}
+
+.status-pagada,
+.status-confirmada,
+.status-entregada {
+  border-color: #27ae60;
+}
+
+.status-cancelada {
+  border-color: #e74c3c;
+}
+
+.status-pendiente,
+.status-enviada {
+  border-color: #f39c12;
+}
+
+.admin-payment-ref {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.admin-select {
+  padding: 8px 10px;
+  border: 1px solid #d4d4d4;
+  background: white;
+}
 }
