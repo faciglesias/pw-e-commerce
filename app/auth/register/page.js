@@ -1,115 +1,158 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
-export default function Register() {
-  const [nombre, setNombre] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
+export default function RegisterPage() {
   const router = useRouter();
+
+  const [nombre, setNombre] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [mensaje, setMensaje] = useState("");
+  const [error, setError] = useState("");
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setError('');
+
     setLoading(true);
+    setMensaje("");
+    setError("");
+
+    if (!nombre.trim() || !email.trim() || !password.trim()) {
+      setError("Completá todos los campos.");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
       });
 
-      if (error) {
-        setError(error.message);
+      if (signUpError) {
+        setError(signUpError.message);
+        setLoading(false);
         return;
       }
 
-      if (data.user) {
-        const { error: perfilError } = await supabase.from('usuarios').insert({
-          id: data.user.id,
-          email,
-          nombre,
-        });
-
-        if (perfilError) {
-          console.error('Error al crear perfil:', perfilError);
-        }
+      if (!data.user) {
+        setError("No se pudo crear el usuario.");
+        setLoading(false);
+        return;
       }
 
-      router.push('/auth/login');
+      const { error: perfilError } = await supabase.from("usuarios").upsert({
+        id: data.user.id,
+        email,
+        nombre,
+        rol: "cliente",
+      });
+
+      if (perfilError) {
+        console.error("Error al crear perfil:", perfilError);
+        setError("La cuenta se creó, pero hubo un error al crear el perfil.");
+        setLoading(false);
+        return;
+      }
+
+      setMensaje("Cuenta creada correctamente. Ya podés iniciar sesión.");
+
+      setTimeout(() => {
+        router.push("/auth/login");
+      }, 1200);
     } catch (err) {
       console.error(err);
-      setError('Error al registrarse');
+      setError("Error inesperado al crear la cuenta.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="container auth-container">
-      <section className="auth-card">
-        <div className="auth-header">
-          <p className="small-label">Cuenta</p>
-          <h1 className="auth-title">Crear cuenta</h1>
-          <p className="auth-subtitle">
-            Registrate para guardar tu carrito y continuar comprando productos Nómada.
-          </p>
-        </div>
+    <div className="site-wrapper">
+      <Header />
 
-        <form className="auth-form" onSubmit={handleRegister}>
-          <div className="auth-field">
-            <label className="auth-label">Nombre</label>
+      <main className="container section-spacing">
+        <p className="breadcrumb">Inicio / Crear cuenta</p>
+
+        <div className="auth-card">
+          <h1 className="page-title">Crear cuenta</h1>
+
+          <p className="page-subtitle">
+            Registrate para comprar, guardar tu carrito y ver tus órdenes.
+          </p>
+
+          <form className="auth-form" onSubmit={handleRegister}>
+            <label className="auth-label" htmlFor="nombre">
+              Nombre
+            </label>
+
             <input
+              id="nombre"
               className="auth-input"
               type="text"
-              placeholder="Tu nombre"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              required
+              placeholder="Tu nombre"
             />
-          </div>
 
-          <div className="auth-field">
-            <label className="auth-label">Email</label>
+            <label className="auth-label" htmlFor="email">
+              Email
+            </label>
+
             <input
+              id="email"
               className="auth-input"
               type="email"
-              placeholder="tu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
+              placeholder="tu@email.com"
             />
-          </div>
 
-          <div className="auth-field">
-            <label className="auth-label">Contraseña</label>
+            <label className="auth-label" htmlFor="password">
+              Contraseña
+            </label>
+
             <input
+              id="password"
               className="auth-input"
               type="password"
-              placeholder="Tu contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
+              placeholder="Mínimo 6 caracteres"
             />
-          </div>
 
-          {error && <p className="auth-error">{error}</p>}
+            {error && <p className="auth-error">{error}</p>}
 
-          <button className="button-dark auth-button" type="submit" disabled={loading}>
-            {loading ? 'Registrando...' : 'Registrarse'}
-          </button>
-        </form>
+            {mensaje && <p className="auth-success">{mensaje}</p>}
 
-        <p className="auth-footer">
-          ¿Ya tenés cuenta? <Link href="/auth/login">Iniciá sesión acá</Link>
-        </p>
-      </section>
-    </main>
+            <button className="button-dark" type="submit" disabled={loading}>
+              {loading ? "Creando cuenta..." : "Crear cuenta"}
+            </button>
+          </form>
+
+          <p className="auth-footer-text">
+            ¿Ya tenés cuenta?{" "}
+            <Link href="/auth/login">Iniciar sesión</Link>
+          </p>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
   );
 }

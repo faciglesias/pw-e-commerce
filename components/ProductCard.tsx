@@ -24,13 +24,17 @@ export default function ProductCard({ producto }: { producto: Producto }) {
         </div>
 
         <div className="product-content">
+          {producto.categoria && (
+            <p className="product-category">{producto.categoria}</p>
+          )}
+
           <h2 className="product-name">{producto.nombre}</h2>
 
           <p className="product-price">${precioFormateado}</p>
 
           <p className="product-description">{producto.descripcion}</p>
 
-          <span className="product-link-text">Ver producto</span>
+          <span className="product-link-button">Ver producto</span>
         </div>
       </article>
     </Link>

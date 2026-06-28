@@ -10,27 +10,24 @@ export default async function ProductosPage() {
     <div className="site-wrapper">
       <Header />
 
-      <main className="container section-spacing">
-        <p className="breadcrumb">Inicio / Productos</p>
+      <main className="container page-section">
+        <p className="breadcrumb">Inicio / Catálogo</p>
 
-        <h1 className="page-title">Productos</h1>
+        <div className="page-heading">
+          <p className="small-label">Catálogo</p>
 
-        <p className="page-subtitle">
-          Mochilas y accesorios pensados para moverte liviano, con diseño simple
-          y funcional.
-        </p>
+          <h1 className="page-title">Productos</h1>
 
-        <div className="products-topbar">
-          <p className="section-note">
+          <p className="products-count">
             {productos.length} productos disponibles
           </p>
         </div>
 
-        <section className="products-grid">
+        <div className="product-grid catalog-grid">
           {productos.map((producto) => (
             <ProductCard key={producto.id} producto={producto} />
           ))}
-        </section>
+        </div>
       </main>
 
       <Footer />
