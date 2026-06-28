@@ -102,24 +102,17 @@ export async function POST(request) {
     }
 
     const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      "http://localhost:3000";
+      process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-    const preference = {
+    const preferenceBody = {
       items: items.map((item) => ({
         id: String(item.productos?.id || item.id),
         title: item.productos?.nombre || "Producto",
-        description:
-          item.productos?.descripcion || `Cantidad: ${item.cantidad}`,
+        description: item.productos?.descripcion || "Producto Nómada",
         quantity: Number(item.cantidad),
         unit_price: Number(item.precio_unitario),
         currency_id: "ARS",
       })),
-
-      payer: {
-        email: user.email,
-      },
 
       back_urls: {
         success: `${appUrl}/pago-completado`,
@@ -135,9 +128,21 @@ export async function POST(request) {
       },
     };
 
+    /*
+      Solo agregamos notification_url si estás usando Vercel.
+      En localhost Mercado Pago no puede llamar a tu webhook local.
+    */
+    if (!appUrl.includes("localhost")) {
+      preferenceBody.notification_url = `${appUrl}/api/webhooks/mercado-pago`;
+    }
+
+    console.log("Preferencia enviada a Mercado Pago:", preferenceBody);
+
     const mercadoPagoResponse = await preferenceClient.create({
-      body: preference,
+      body: preferenceBody,
     });
+
+    console.log("Respuesta Mercado Pago:", mercadoPagoResponse);
 
     const initPoint =
       mercadoPagoResponse?.sandbox_init_point ||
@@ -145,7 +150,7 @@ export async function POST(request) {
 
     if (!initPoint) {
       return errorResponse(
-        "Mercado Pago no devolvió init_point",
+        "Mercado Pago no devolvió URL de pago",
         "MERCADOPAGO_INIT_POINT_ERROR",
         500
       );
@@ -155,9 +160,10 @@ export async function POST(request) {
       orden_id: orden.id,
       total: orden.total,
       estado: orden.estado,
-      init_point: mercadoPagoResponse.init_point,
-      sandbox_init_point: mercadoPagoResponse.sandbox_init_point,
       preference_id: mercadoPagoResponse.id,
+      init_point: initPoint,
+      sandbox_init_point: mercadoPagoResponse.sandbox_init_point,
+      production_init_point: mercadoPagoResponse.init_point,
     });
   } catch (err) {
     console.error("Error Mercado Pago completo:", err);

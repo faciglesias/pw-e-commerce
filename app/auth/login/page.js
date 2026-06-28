@@ -4,35 +4,47 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
-export default function Login() {
+export default function LoginPage() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
+
     setLoading(true);
+    setError("");
+
+    if (!email.trim() || !password.trim()) {
+      setError("Completá email y contraseña.");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error: loginError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        setError(error.message);
+      if (loginError) {
+        setError("Email o contraseña incorrectos.");
+        setLoading(false);
         return;
       }
 
       router.push("/");
+      router.refresh();
     } catch (err) {
       console.error(err);
-      setError("Error al iniciar sesión");
+      setError("Error inesperado al iniciar sesión.");
     } finally {
       setLoading(false);
     }
@@ -40,60 +52,61 @@ export default function Login() {
 
   return (
     <div className="site-wrapper">
-      <main className="container auth-container">
-        <section className="auth-card">
-          <div className="auth-header">
-            <p className="small-label">Acceso</p>
+      <Header />
 
-            <h1 className="auth-title">Iniciar sesión</h1>
+      <main className="container section-spacing">
+        <p className="breadcrumb">Inicio / Iniciar sesión</p>
 
-            <p className="auth-subtitle">
-              Entrá a tu cuenta para ver tu carrito y continuar tu compra.
-            </p>
-          </div>
+        <div className="auth-card">
+          <h1 className="page-title">Iniciar sesión</h1>
+
+          <p className="page-subtitle">
+            Entrá a tu cuenta para ver tu carrito, tus órdenes y continuar tu
+            compra.
+          </p>
 
           <form className="auth-form" onSubmit={handleLogin}>
-            <div className="auth-field">
-              <label className="auth-label">Email</label>
-              <input
-                className="auth-input"
-                type="email"
-                placeholder="tu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+            <label className="auth-label" htmlFor="email">
+              Email
+            </label>
 
-            <div className="auth-field">
-              <label className="auth-label">Contraseña</label>
-              <input
-                className="auth-input"
-                type="password"
-                placeholder="Tu contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+            <input
+              id="email"
+              className="auth-input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="tu@email.com"
+            />
+
+            <label className="auth-label" htmlFor="password">
+              Contraseña
+            </label>
+
+            <input
+              id="password"
+              className="auth-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Tu contraseña"
+            />
 
             {error && <p className="auth-error">{error}</p>}
 
-            <button
-              className="button-dark auth-button"
-              type="submit"
-              disabled={loading}
-            >
+            <button className="button-dark" type="submit" disabled={loading}>
               {loading ? "Ingresando..." : "Ingresar"}
             </button>
           </form>
 
-          <p className="auth-footer">
+          <p className="auth-footer-text">
             ¿No tenés cuenta?{" "}
-            <Link href="/auth/register">Registrate acá</Link>
+            <Link href="/auth/register">Crear cuenta</Link>
           </p>
-        </section>
+        </div>
       </main>
+
+      <Footer />
     </div>
   );
 }
