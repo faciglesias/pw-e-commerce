@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -35,11 +35,40 @@ export default function AdminPage() {
 
   const router = useRouter();
 
-  useEffect(() => {
-    verificarYCargar();
-  }, []);
+  const cargarOrdenes = useCallback(
+    async (token?: string) => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-  const verificarYCargar = async () => {
+      const accessToken = token || session?.access_token;
+
+      if (!accessToken) {
+        router.push("/auth/login");
+        return;
+      }
+
+      const res = await fetch("/api/admin/ordenes", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        setError(result.error || "Error al cargar órdenes");
+        setOrdenes([]);
+      } else {
+        setOrdenes((result.data as Orden[]) || []);
+      }
+
+      setLoading(false);
+    },
+    [router]
+  );
+
+  const verificarYCargar = useCallback(async () => {
     setLoading(true);
     setError("");
 
@@ -67,37 +96,11 @@ export default function AdminPage() {
     }
 
     await cargarOrdenes(session.access_token);
-  };
+  }, [router, cargarOrdenes]);
 
-  const cargarOrdenes = async (token?: string) => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    const accessToken = token || session?.access_token;
-
-    if (!accessToken) {
-      router.push("/auth/login");
-      return;
-    }
-
-    const res = await fetch("/api/admin/ordenes", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      setError(result.error || "Error al cargar órdenes");
-      setOrdenes([]);
-    } else {
-      setOrdenes(result.data || []);
-    }
-
-    setLoading(false);
-  };
+  useEffect(() => {
+    verificarYCargar();
+  }, [verificarYCargar]);
 
   const cambiarEstado = async (ordenId: number, nuevoEstado: string) => {
     setActualizando(ordenId);
@@ -133,7 +136,9 @@ export default function AdminPage() {
 
       setOrdenes((prev) =>
         prev.map((orden) =>
-          orden.id === ordenId ? { ...orden, estado: result.data.estado } : orden
+          orden.id === ordenId
+            ? { ...orden, estado: result.data.estado }
+            : orden
         )
       );
     } catch (err) {
@@ -145,106 +150,136 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="site-wrapper">
+    <>
       <Header />
 
-      <main className="container section-spacing">
-        <p className="breadcrumb">Inicio / Admin</p>
-
-        <h1 className="page-title">Panel admin</h1>
-
-        <p className="page-subtitle">
-          Gestión básica de órdenes, pagos y estados del e-commerce.
-        </p>
-
-        {loading ? (
-          <div className="cart-box">
-            <p>Cargando panel admin...</p>
+      <main className="min-h-screen bg-gray-50 px-4 py-10">
+        <section className="mx-auto max-w-6xl">
+          <div className="mb-6 text-sm text-gray-500">
+            <Link href="/" className="hover:underline">
+              Inicio
+            </Link>{" "}
+            / Admin
           </div>
-        ) : error ? (
-          <div className="cart-box">
-            <p>{error}</p>
 
-            <div className="cart-buttons">
-              <Link href="/" className="button-dark">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Panel admin</h1>
+            <p className="mt-2 text-gray-600">
+              Gestión básica de órdenes, pagos y estados del e-commerce.
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="rounded-xl bg-white p-6 shadow">
+              <p className="text-gray-600">Cargando panel admin...</p>
+            </div>
+          ) : error ? (
+            <div className="rounded-xl bg-white p-6 shadow">
+              <p className="mb-4 text-red-600">{error}</p>
+
+              <Link
+                href="/"
+                className="inline-block rounded-lg bg-black px-5 py-2 text-white transition hover:bg-gray-800"
+              >
                 Volver al inicio
               </Link>
             </div>
-          </div>
-        ) : ordenes.length === 0 ? (
-          <div className="cart-box">
-            <p>No hay órdenes cargadas todavía.</p>
-          </div>
-        ) : (
-          <div className="admin-table-box">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Orden</th>
-                  <th>Usuario</th>
-                  <th>Total</th>
-                  <th>Estado</th>
-                  <th>Pago</th>
-                  <th>Fecha</th>
-                  <th>Actualizar</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {ordenes.map((orden) => (
-                  <tr key={orden.id}>
-                    <td>#{orden.id}</td>
-
-                    <td className="admin-user-cell">
-                      {orden.usuario_id.slice(0, 8)}...
-                    </td>
-
-                    <td>${Number(orden.total).toLocaleString("es-AR")}</td>
-
-                    <td>
-                      <span className={`admin-status status-${orden.estado}`}>
-                        {orden.estado}
-                      </span>
-                    </td>
-
-                    <td>
-                      {orden.metodo_pago || "Sin pago"}
-                      {orden.referencia_pago && (
-                        <span className="admin-payment-ref">
-                          Ref: {orden.referencia_pago}
-                        </span>
-                      )}
-                    </td>
-
-                    <td>
-                      {new Date(orden.creado_en).toLocaleDateString("es-AR")}
-                    </td>
-
-                    <td>
-                      <select
-                        className="admin-select"
-                        value={orden.estado}
-                        disabled={actualizando === orden.id}
-                        onChange={(e) =>
-                          cambiarEstado(orden.id, e.target.value)
-                        }
-                      >
-                        {estados.map((estado) => (
-                          <option key={estado} value={estado}>
-                            {estado}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
+          ) : ordenes.length === 0 ? (
+            <div className="rounded-xl bg-white p-6 shadow">
+              <p className="text-gray-600">
+                No hay órdenes cargadas todavía.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-xl bg-white shadow">
+              <table className="w-full min-w-[900px] border-collapse text-left">
+                <thead className="border-b bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-700">
+                      Orden
+                    </th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-700">
+                      Usuario
+                    </th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-700">
+                      Total
+                    </th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-700">
+                      Estado
+                    </th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-700">
+                      Pago
+                    </th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-700">
+                      Fecha
+                    </th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-700">
+                      Actualizar
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+
+                <tbody>
+                  {ordenes.map((orden) => (
+                    <tr key={orden.id} className="border-b last:border-b-0">
+                      <td className="px-4 py-3 text-sm text-gray-800">
+                        #{orden.id}
+                      </td>
+
+                      <td className="px-4 py-3 text-sm text-gray-800">
+                        {orden.usuario_id.slice(0, 8)}...
+                      </td>
+
+                      <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                        ${Number(orden.total).toLocaleString("es-AR")}
+                      </td>
+
+                      <td className="px-4 py-3 text-sm text-gray-800">
+                        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium">
+                          {orden.estado}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 text-sm text-gray-800">
+                        <div>{orden.metodo_pago || "Sin pago"}</div>
+
+                        {orden.referencia_pago && (
+                          <div className="mt-1 text-xs text-gray-500">
+                            Ref: {orden.referencia_pago}
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="px-4 py-3 text-sm text-gray-800">
+                        {new Date(orden.creado_en).toLocaleDateString("es-AR")}
+                      </td>
+
+                      <td className="px-4 py-3 text-sm text-gray-800">
+                        <select
+                          value={orden.estado}
+                          disabled={actualizando === orden.id}
+                          onChange={(e) =>
+                            cambiarEstado(orden.id, e.target.value)
+                          }
+                          className="rounded-lg border border-gray-300 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {estados.map((estado) => (
+                            <option key={estado} value={estado}>
+                              {estado}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </main>
 
       <Footer />
-    </div>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -28,11 +28,7 @@ export default function CarritoPage() {
 
   const router = useRouter();
 
-  useEffect(() => {
-    cargarCarrito();
-  }, []);
-
-  const cargarCarrito = async () => {
+  const cargarCarrito = useCallback(async () => {
     setLoading(true);
 
     const {
@@ -46,7 +42,8 @@ export default function CarritoPage() {
 
     const { data, error } = await supabase
       .from("carrito")
-      .select(`
+      .select(
+        `
         id,
         cantidad,
         productos (
@@ -56,7 +53,8 @@ export default function CarritoPage() {
           precio,
           imagen_url
         )
-      `)
+      `
+      )
       .order("id", { ascending: true });
 
     if (error) {
@@ -67,7 +65,11 @@ export default function CarritoPage() {
     }
 
     setLoading(false);
-  };
+  }, [router]);
+
+  useEffect(() => {
+    cargarCarrito();
+  }, [cargarCarrito]);
 
   const eliminarDelCarrito = async (id: number) => {
     const { error } = await supabase.from("carrito").delete().eq("id", id);
@@ -78,7 +80,7 @@ export default function CarritoPage() {
       return;
     }
 
-    setItems(items.filter((item) => item.id !== id));
+    setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   const finalizarCompra = async () => {
@@ -109,9 +111,7 @@ export default function CarritoPage() {
       }
 
       alert("Compra realizada correctamente");
-
       setItems([]);
-
       router.push("/ordenes");
     } catch (err) {
       console.error(err);
@@ -123,89 +123,132 @@ export default function CarritoPage() {
 
   const total = items.reduce((acc, item) => {
     if (!item.productos) return acc;
-
     return acc + Number(item.productos.precio) * item.cantidad;
   }, 0);
 
   return (
-    <div className="site-wrapper">
+    <>
       <Header />
 
-      <main className="container section-spacing">
-        <p className="breadcrumb">Inicio / Carrito</p>
-
-        <h1 className="page-title">Mi carrito</h1>
-
-        <p className="page-subtitle">
-          Estos son los productos que agregaste a tu carrito.
-        </p>
-
-        {loading ? (
-          <div className="cart-box">
-            <p>Cargando carrito...</p>
+      <main className="min-h-screen bg-gray-50 px-4 py-10">
+        <section className="mx-auto max-w-5xl">
+          <div className="mb-6 text-sm text-gray-500">
+            <Link href="/" className="hover:underline">
+              Inicio
+            </Link>{" "}
+            / Carrito
           </div>
-        ) : items.length === 0 ? (
-          <div className="cart-box">
-            <p>Tu carrito está vacío.</p>
 
-            <div className="cart-buttons">
-              <Link href="/productos" className="button-dark">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Mi carrito</h1>
+            <p className="mt-2 text-gray-600">
+              Estos son los productos que agregaste a tu carrito.
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="rounded-xl bg-white p-6 shadow">
+              <p className="text-gray-600">Cargando carrito...</p>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="rounded-xl bg-white p-6 text-center shadow">
+              <p className="mb-4 text-gray-600">Tu carrito está vacío.</p>
+
+              <Link
+                href="/productos"
+                className="inline-block rounded-lg bg-black px-5 py-2 text-white transition hover:bg-gray-800"
+              >
                 Ver productos
               </Link>
             </div>
-          </div>
-        ) : (
-          <div className="cart-box">
-            {items.map((item) => {
-              if (!item.productos) return null;
+          ) : (
+            <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+              <div className="space-y-4">
+                {items.map((item) => {
+                  if (!item.productos) return null;
 
-              return (
-                <div key={item.id} className="cart-item">
-                  <div>
-                    <h2 className="product-name">{item.productos.nombre}</h2>
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex flex-col gap-4 rounded-xl bg-white p-4 shadow sm:flex-row"
+                    >
+                      {item.productos.imagen_url && (
+                        <img
+                          src={item.productos.imagen_url}
+                          alt={item.productos.nombre}
+                          className="h-32 w-full rounded-lg object-cover sm:w-32"
+                        />
+                      )}
 
-                    <p className="product-description">
-                      {item.productos.descripcion}
-                    </p>
+                      <div className="flex flex-1 flex-col justify-between">
+                        <div>
+                          <h2 className="text-xl font-semibold text-gray-900">
+                            {item.productos.nombre}
+                          </h2>
 
-                    <p className="product-price">
-                      Cantidad: {item.cantidad} · $
-                      {Number(item.productos.precio).toLocaleString("es-AR")}
-                    </p>
-                  </div>
+                          {item.productos.descripcion && (
+                            <p className="mt-1 text-sm text-gray-600">
+                              {item.productos.descripcion}
+                            </p>
+                          )}
+
+                          <p className="mt-3 text-gray-700">
+                            Cantidad: {item.cantidad} · ${" "}
+                            {Number(item.productos.precio).toLocaleString(
+                              "es-AR"
+                            )}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => eliminarDelCarrito(item.id)}
+                          className="mt-4 w-fit rounded-lg border border-red-500 px-4 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <aside className="h-fit rounded-xl bg-white p-6 shadow">
+                <h2 className="mb-4 text-xl font-bold text-gray-900">
+                  Resumen
+                </h2>
+
+                <div className="mb-6 flex items-center justify-between border-b pb-4">
+                  <span className="text-gray-600">Total</span>
+                  <span className="text-2xl font-bold text-gray-900">
+                    ${total.toLocaleString("es-AR")}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <Link
+                    href="/productos"
+                    className="block rounded-lg border border-gray-300 px-5 py-3 text-center text-gray-700 transition hover:bg-gray-100"
+                  >
+                    Seguir comprando
+                  </Link>
 
                   <button
-                    className="button-light"
-                    onClick={() => eliminarDelCarrito(item.id)}
+                    type="button"
+                    onClick={finalizarCompra}
+                    disabled={procesando}
+                    className="w-full rounded-lg bg-black px-5 py-3 text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Eliminar
+                    {procesando ? "Procesando..." : "Finalizar compra"}
                   </button>
                 </div>
-              );
-            })}
-
-            <div className="cart-total">
-              <h2>Total: ${total.toLocaleString("es-AR")}</h2>
+              </aside>
             </div>
-
-            <div className="cart-buttons">
-              <Link href="/productos" className="button-light">
-                Seguir comprando
-              </Link>
-
-              <button
-                className="button-dark"
-                onClick={finalizarCompra}
-                disabled={procesando}
-              >
-                {procesando ? "Procesando..." : "Finalizar compra"}
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </section>
       </main>
 
       <Footer />
-    </div>
+    </>
   );
 }
