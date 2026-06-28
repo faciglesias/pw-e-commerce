@@ -29,41 +29,41 @@ function CheckoutContent() {
   const ordenId = searchParams.get("orden");
 
   useEffect(() => {
-    cargarOrden();
-  }, [ordenId]);
+    const cargarOrden = async () => {
+      setLoading(true);
 
-  const cargarOrden = async () => {
-    setLoading(true);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/auth/login");
+        return;
+      }
 
-    if (!session) {
-      router.push("/auth/login");
-      return;
-    }
+      if (!ordenId) {
+        setLoading(false);
+        return;
+      }
 
-    if (!ordenId) {
+      const { data, error } = await supabase
+        .from("ordenes")
+        .select("*")
+        .eq("id", Number(ordenId))
+        .single();
+
+      if (error || !data) {
+        console.error("Error al cargar orden:", error);
+        setOrden(null);
+      } else {
+        setOrden(data as Orden);
+      }
+
       setLoading(false);
-      return;
-    }
+    };
 
-    const { data, error } = await supabase
-      .from("ordenes")
-      .select("*")
-      .eq("id", Number(ordenId))
-      .single();
-
-    if (error || !data) {
-      console.error("Error al cargar orden:", error);
-      setOrden(null);
-    } else {
-      setOrden(data as Orden);
-    }
-
-    setLoading(false);
-  };
+    cargarOrden();
+  }, [ordenId, router]);
 
   const crearPreferencia = async () => {
     if (!orden) return;
