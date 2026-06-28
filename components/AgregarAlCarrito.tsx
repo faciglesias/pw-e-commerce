@@ -18,28 +18,36 @@ export default function AgregarAlCarrito({ producto }: { producto: Producto }) {
 
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (!user) {
+      if (!session) {
         router.push("/auth/login");
         return;
       }
 
-      const { error } = await supabase.from("carrito").upsert({
-        usuario_id: user.id,
-        producto_id: producto.id,
-        cantidad: 1,
+      const res = await fetch("/api/carrito", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          producto_id: producto.id,
+          cantidad: 1,
+        }),
       });
 
-      if (error) {
-        console.error("Error:", error);
-        alert("Error al agregar al carrito");
-      } else {
-        alert("Producto agregado al carrito");
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.error || "Error al agregar al carrito");
+        return;
       }
+
+      alert("Producto agregado al carrito");
     } catch (err) {
-      console.error("Error:", err);
+      console.error(err);
       alert("Error al agregar al carrito");
     } finally {
       setLoading(false);

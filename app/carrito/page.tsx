@@ -24,6 +24,8 @@ type ItemCarrito = {
 export default function CarritoPage() {
   const [items, setItems] = useState<ItemCarrito[]>([]);
   const [loading, setLoading] = useState(true);
+  const [procesando, setProcesando] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -77,6 +79,46 @@ export default function CarritoPage() {
     }
 
     setItems(items.filter((item) => item.id !== id));
+  };
+
+  const finalizarCompra = async () => {
+    setProcesando(true);
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.push("/auth/login");
+        return;
+      }
+
+      const res = await fetch("/api/ordenes", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.error || "Error al crear orden");
+        return;
+      }
+
+      alert("Compra realizada correctamente");
+
+      setItems([]);
+
+      router.push("/ordenes");
+    } catch (err) {
+      console.error(err);
+      alert("Error al finalizar compra");
+    } finally {
+      setProcesando(false);
+    }
   };
 
   const total = items.reduce((acc, item) => {
@@ -151,7 +193,13 @@ export default function CarritoPage() {
                 Seguir comprando
               </Link>
 
-              <button className="button-dark">Finalizar compra</button>
+              <button
+                className="button-dark"
+                onClick={finalizarCompra}
+                disabled={procesando}
+              >
+                {procesando ? "Procesando..." : "Finalizar compra"}
+              </button>
             </div>
           </div>
         )}
