@@ -65,7 +65,7 @@ function CheckoutContent() {
     cargarOrden();
   }, [ordenId, router]);
 
-  const crearPreferencia = async () => {
+  const pagarConMercadoPago = async () => {
     if (!orden) return;
 
     setProcesando(true);
@@ -99,7 +99,15 @@ function CheckoutContent() {
         return;
       }
 
-      setMensaje(result.data?.mensaje || "Preferencia creada correctamente");
+      const initPoint =
+        result.data?.sandbox_init_point || result.data?.init_point;
+
+      if (!initPoint) {
+        alert("Mercado Pago no devolvió una URL de pago");
+        return;
+      }
+
+      window.location.href = initPoint;
     } catch (err) {
       console.error(err);
       alert("Error al procesar pago");
@@ -115,7 +123,7 @@ function CheckoutContent() {
       <h1 className="page-title">Checkout</h1>
 
       <p className="page-subtitle">
-        Revisá el resumen de tu orden y prepará el pago de forma segura.
+        Revisá el resumen de tu orden y pagá de forma segura con Mercado Pago.
       </p>
 
       {loading ? (
@@ -150,12 +158,12 @@ function CheckoutContent() {
             <h3 className="product-name">Método de pago</h3>
 
             <p className="product-description">
-              Mercado Pago habilitado. Transferencia bancaria próximamente.
+              Mercado Pago habilitado en modo sandbox.
             </p>
 
             <p className="section-note">
-              Tus datos se procesarán de forma segura. En la próxima clase se
-              conectará el link real de Mercado Pago.
+              Vas a ser redirigido al checkout seguro de Mercado Pago para
+              completar el pago con tarjetas de prueba.
             </p>
           </div>
 
@@ -164,10 +172,10 @@ function CheckoutContent() {
           <div className="cart-buttons">
             <button
               className="button-dark"
-              onClick={crearPreferencia}
+              onClick={pagarConMercadoPago}
               disabled={procesando || orden.estado !== "pendiente"}
             >
-              {procesando ? "Preparando pago..." : "Pagar con Mercado Pago"}
+              {procesando ? "Redirigiendo..." : "Pagar con Mercado Pago"}
             </button>
 
             <Link href="/ordenes" className="button-light">

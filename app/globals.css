@@ -613,4 +613,20 @@ img {
   border-top: 1px solid #d4d4d4;
   padding-top: 24px;
 }
+.payment-result {
+  text-align: center;
+  border-top: 6px solid #d4d4d4;
+}
+
+.payment-success {
+  border-top-color: #27ae60;
+}
+
+.payment-failure {
+  border-top-color: #e74c3c;
+}
+
+.payment-pending {
+  border-top-color: #f39c12;
+}
 }

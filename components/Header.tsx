@@ -8,16 +8,30 @@ export default function Header() {
           Nómada
         </Link>
 
-        <nav className="main-nav" aria-label="Navegación principal">
+        <nav className="main-nav">
           <ul>
             <li>
               <Link href="/">Inicio</Link>
             </li>
+
             <li>
               <Link href="/productos">Catálogo</Link>
             </li>
+
             <li>
               <Link href="/carrito">Carrito</Link>
+            </li>
+
+            <li>
+              <Link href="/ordenes">Órdenes</Link>
+            </li>
+
+            <li>
+              <Link href="/auth/login">Iniciar sesión</Link>
+            </li>
+
+            <li>
+              <Link href="/auth/register">Crear cuenta</Link>
             </li>
           </ul>
         </nav>

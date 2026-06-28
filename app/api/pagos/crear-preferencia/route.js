@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { preferenceClient } from "@/lib/mercadopago";
 import { successResponse, errorResponse } from "@/lib/api/responses";
 
 function crearSupabaseConToken(token) {
@@ -82,7 +83,8 @@ export async function POST(request) {
         productos (
           id,
           nombre,
-          descripcion
+          descripcion,
+          imagen_url
         )
       `)
       .eq("orden_id", ordenId);
@@ -99,40 +101,74 @@ export async function POST(request) {
       );
     }
 
-    const preferencia = {
-      external_reference: String(orden.id),
-      payer: {
-        email: user.email,
-      },
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "http://localhost:3000";
+
+    const preference = {
       items: items.map((item) => ({
+        id: String(item.productos?.id || item.id),
         title: item.productos?.nombre || "Producto",
-        description: item.productos?.descripcion || "",
-        quantity: item.cantidad,
+        description:
+          item.productos?.descripcion || `Cantidad: ${item.cantidad}`,
+        quantity: Number(item.cantidad),
         unit_price: Number(item.precio_unitario),
         currency_id: "ARS",
       })),
-      notification_url: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/api/pagos/webhook`,
+
+      payer: {
+        email: user.email,
+      },
+
       back_urls: {
-        success: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/ordenes`,
-        failure: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/checkout?orden=${orden.id}`,
-        pending: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/ordenes`,
+        success: `${appUrl}/pago-completado`,
+        failure: `${appUrl}/pago-fallido`,
+        pending: `${appUrl}/pago-pendiente`,
+      },
+
+      external_reference: String(orden.id),
+
+      metadata: {
+        orden_id: orden.id,
+        usuario_id: user.id,
       },
     };
+
+    const mercadoPagoResponse = await preferenceClient.create({
+      body: preference,
+    });
+
+    const initPoint =
+      mercadoPagoResponse?.sandbox_init_point ||
+      mercadoPagoResponse?.init_point;
+
+    if (!initPoint) {
+      return errorResponse(
+        "Mercado Pago no devolvió init_point",
+        "MERCADOPAGO_INIT_POINT_ERROR",
+        500
+      );
+    }
 
     return successResponse({
       orden_id: orden.id,
       total: orden.total,
       estado: orden.estado,
-      preferencia,
-      mensaje:
-        "Preferencia preparada. En la próxima clase se conecta con Mercado Pago.",
+      init_point: mercadoPagoResponse.init_point,
+      sandbox_init_point: mercadoPagoResponse.sandbox_init_point,
+      preference_id: mercadoPagoResponse.id,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error Mercado Pago completo:", err);
+    console.error("Mensaje:", err?.message);
+    console.error("Causa:", err?.cause);
+    console.error("Status:", err?.status);
+    console.error("Response:", err?.response);
 
     return errorResponse(
-      "Error al crear preferencia de pago",
-      "SERVER_ERROR",
+      err?.message || "Error al crear preferencia de pago",
+      "MERCADOPAGO_ERROR",
       500
     );
   }
