@@ -75,7 +75,8 @@ export async function POST(request) {
 
     const { data: items, error: itemsError } = await supabaseAdmin
       .from("orden_items")
-      .select(`
+      .select(
+        `
         id,
         cantidad,
         precio_unitario,
@@ -86,7 +87,8 @@ export async function POST(request) {
           descripcion,
           imagen_url
         )
-      `)
+      `
+      )
       .eq("orden_id", ordenId);
 
     if (itemsError) {
@@ -101,8 +103,7 @@ export async function POST(request) {
       );
     }
 
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     const preferenceBody = {
       items: items.map((item) => ({
@@ -126,12 +127,10 @@ export async function POST(request) {
         orden_id: orden.id,
         usuario_id: user.id,
       },
+
+      auto_return: "approved",
     };
 
-    /*
-      Solo agregamos notification_url si estás usando Vercel.
-      En localhost Mercado Pago no puede llamar a tu webhook local.
-    */
     if (!appUrl.includes("localhost")) {
       preferenceBody.notification_url = `${appUrl}/api/webhooks/mercado-pago`;
     }
@@ -144,9 +143,13 @@ export async function POST(request) {
 
     console.log("Respuesta Mercado Pago:", mercadoPagoResponse);
 
-    const initPoint =
-      mercadoPagoResponse?.sandbox_init_point ||
-      mercadoPagoResponse?.init_point;
+    /**
+     * Importante:
+     * Antes estabas usando sandbox_init_point primero.
+     * Para evitar el bucle de redirects en sandbox.mercadopago.com.ar,
+     * usamos init_point como URL principal.
+     */
+    const initPoint = mercadoPagoResponse?.init_point;
 
     if (!initPoint) {
       return errorResponse(
@@ -162,8 +165,6 @@ export async function POST(request) {
       estado: orden.estado,
       preference_id: mercadoPagoResponse.id,
       init_point: initPoint,
-      sandbox_init_point: mercadoPagoResponse.sandbox_init_point,
-      production_init_point: mercadoPagoResponse.init_point,
     });
   } catch (err) {
     console.error("Error Mercado Pago completo:", err);
